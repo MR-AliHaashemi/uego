@@ -4,22 +4,53 @@ import (
 	"bytes"
 	"compress/gzip"
 	"compress/zlib"
-	"fmt"
+	"errors"
 	"io"
 
 	"github.com/MR-AliHaashemi/uego/compression/oodle"
 )
 
-type Methods string
+var ErrUnknownMethod = errors.New("unknown compression method")
+
+type Method string
 
 const (
-	MethodNone  Methods = ""
-	MethodZlib  Methods = "Zlib"
-	MethodGzip  Methods = "Gzip"
-	MethodOodle Methods = "Oodle"
+	MethodNone    Method = ""
+	MethodZlib    Method = "Zlib"
+	MethodGzip    Method = "Gzip"
+	MethodOodle   Method = "Oodle"
+	MethodUnknown Method = "UNKNOWN"
 )
 
-func Decompress(compressed []byte, compressedOffset, decompressedSize int, method Methods) (io.ReadCloser, error) {
+func GetMethod(n int) Method {
+	switch n {
+	case 1:
+		return MethodZlib
+	case 2:
+		return MethodGzip
+	case 3:
+		return MethodOodle
+	}
+
+	return MethodNone
+}
+
+func GetStringMethod(s string) Method {
+	switch s {
+	case "":
+		return MethodNone
+	case "Zlib":
+		return MethodZlib
+	case "Gzip":
+		return MethodGzip
+	case "Oodle":
+		return MethodOodle
+	}
+
+	return MethodUnknown
+}
+
+func Decompress(compressed []byte, compressedOffset, decompressedSize int, method Method) (io.ReadCloser, error) {
 	switch method {
 	case MethodNone:
 		return io.NopCloser(bytes.NewReader(compressed)), nil
@@ -33,7 +64,7 @@ func Decompress(compressed []byte, compressedOffset, decompressedSize int, metho
 			return nil, err
 		}
 		return io.NopCloser(bytes.NewReader(data)), nil
-	default:
-		return nil, fmt.Errorf("unknown compression method %v", method)
 	}
+
+	return nil, ErrUnknownMethod
 }
