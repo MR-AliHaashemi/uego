@@ -18,12 +18,22 @@ type AES struct {
 	key   []byte
 }
 
-func NewAES(key string) (*AES, error) {
-	if !strings.HasPrefix(key, "0x") {
-		key = "0x" + key
+func NewAES(key []byte) (*AES, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
 	}
 
-	if len(key) != 64+2 {
+	return &AES{
+		block: block,
+		key:   key,
+	}, nil
+}
+
+func NewAESString(key string) (*AES, error) {
+	key = strings.TrimPrefix(key, "0x")
+
+	if len(key) != 64 {
 		return nil, ErrAESKeyStringWrongLength
 	}
 
