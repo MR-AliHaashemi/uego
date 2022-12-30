@@ -1,4 +1,4 @@
-module github.com/MR-AliHaashemi/uego
+module github.com/haashemi/uego
 
 go 1.19
 
